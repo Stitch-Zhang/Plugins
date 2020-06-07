@@ -9,11 +9,13 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
 )
 
 //TargetSite is about to drcraibe a GET action Parms
 type TargetSite struct {
 	URL          string
+	Header 		map[string]string
 	UA           string
 	RegEnabled   bool
 	RegExp       string
@@ -34,6 +36,9 @@ type EzRespond struct {
 //t is times
 func (ts *TargetSite) Do() *EzRespond {
 	ezRespond := new(EzRespond)
+	if !strings.ContainsAny(ts.URL,"http"){
+		log.Fatal("Typed Url didnt contain http or https")
+	}
 	for i := 0; i < ts.Times+1; i++ {
 		//HTTP ACTION
 		var proxy func(_ *http.Request) (*url.URL, error)
@@ -47,6 +52,11 @@ func (ts *TargetSite) Do() *EzRespond {
 		client := &http.Client{Transport: tr}
 		target, err := http.NewRequest("GET", ts.URL, nil)
 		target.Header.Set("User-Agent", ts.UA)
+		for i:=0;i<len(ts.Header);i++{
+			for k,v :=range ts.Header{
+				target.Header.Set(k,v)
+			}
+		}
 		if err != nil {
 			fmt.Println("Gente target site wrong", err)
 		}
